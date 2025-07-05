@@ -1,8 +1,8 @@
 interface ICreateUser {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
+  confirmPassword: string;
 }
 
 interface IResendVerifyEmail {
@@ -10,8 +10,7 @@ interface IResendVerifyEmail {
 }
 
 interface IUpdateUser {
-  firstName: string;
-  lastName: string;
+  name: string;
   userName: string;
   email: string;
   password: string;
@@ -27,7 +26,7 @@ interface IForgotPassword {
 }
 
 interface IResetPassword {
-  token: string;
+  email: string;
   password: string;
 }
 

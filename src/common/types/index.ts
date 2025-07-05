@@ -1,5 +1,5 @@
 export interface IDecodedToken {
-  id: number;
+  id: string;
   iat: number;
   exp: number;
 }

@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
         token,
       ) as IDecodedToken;
 
-      request['currentUser'] = { id: decodeAccessToken.id };
+      request['currentUser'] = { _id: decodeAccessToken.id };
     } catch {
       throw new UnauthorizedException(ERROR_CONSTANT.AUTH.UNAUTHORIZED);
     }

@@ -4,10 +4,9 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from '../user/model/user.model';
+import { User } from '../user/schema/user.schema';
 import { Model } from 'mongoose';
 import {
   ICreateUser,
@@ -18,20 +17,23 @@ import {
 } from './interface';
 import { ERROR_CONSTANT } from '../../common/constants/error.constant';
 import { BaseHelper } from '../../common/utils/helper.util';
-import { MailService } from '../mail/mail.service';
+// import { MailService } from '../mail/mail.service';
+import { OtpService } from '../otp/otp.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
-    private mailService: MailService,
+    // private mailService: MailService,
+    private otpService: OtpService,
   ) {}
 
   async signup(payload: ICreateUser) {
-    const session = await this.userModel.startSession();
-    session.startTransaction();
-
     try {
+      if (payload.password !== payload.confirmPassword) {
+        throw new BadRequestException(ERROR_CONSTANT.AUTH.PASSWORD_MISMATCH);
+      }
+
       const existingUser = await this.userModel
         .findOne({ email: payload.email })
         .lean()
@@ -41,97 +43,75 @@ export class AuthService {
         throw new ConflictException(ERROR_CONSTANT.AUTH.USER_EXISTS);
       }
 
-      const token = BaseHelper.generateRandomString(15);
-
       const hashedPassword = await BaseHelper.hashData(payload.password);
 
-      const [user] = await this.userModel.create(
-        [
-          {
-            ...payload,
-            password: hashedPassword,
-          },
-        ],
-        { session },
-      );
-
-      await user.save({ session });
-
-      await this.userModel.updateOne(
-        { email: user.email },
-        {
-          $set: {
-            verificationToken: token,
-            verificationTokenExpiration: Date.now() + 30 * 60 * 1000,
-          },
-        },
-        { session },
-      );
-
-      await session.commitTransaction();
-
-      await this.mailService.sendVerificationEmail('Verify your email', token, {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+      const user = new this.userModel({
+        ...payload,
+        password: hashedPassword,
       });
+
+      await this.otpService.generateOtp(user.email, 'verify_email');
+
+      await user.save();
+
+      // Mail service is available, but needs configuration
+      // await this.mailService.sendVerificationEmail(
+      //   'Verify your email',
+      //   otpCode,
+      //   {
+      //     email: user.email,
+      //     name: user.name,
+      //   },
+      // );
 
       return user;
     } catch (error) {
-      await session.abortTransaction();
-
-      if (error instanceof BadRequestException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      ) {
         throw error;
       }
 
       throw new InternalServerErrorException(
         ERROR_CONSTANT.GENERAL.SERVER_ERROR,
       );
-    } finally {
-      session.endSession();
     }
   }
 
-  async verifyEmail(token: string) {
+  async verifyEmail(email: string, code: number) {
     try {
-      const user = await this.userModel
-        .findOne({
-          verificationToken: token,
-          verificationTokenExpiration: { $gt: Date.now() },
-        })
-        .lean()
-        .exec();
+      await this.otpService.verifyOtp(email, code, 'verify_email');
+
+      const user = await this.userModel.findOneAndUpdate(
+        { email },
+        {
+          $set: {
+            isEmailVerified: true,
+          },
+        },
+        { new: true },
+      );
 
       if (!user) {
-        throw new UnauthorizedException(
-          ERROR_CONSTANT.AUTH.EMAIL_VERIFICATION_FAILED,
-        );
+        throw new NotFoundException(ERROR_CONSTANT.AUTH.USER_DOES_NOT_EXIST);
       }
 
-      await this.userModel
-        .updateOne(
-          {
-            email: user.email,
-          },
-          {
-            $set: {
-              isEmailVerified: true,
-              verificationToken: undefined,
-              verificationTokenExpiration: undefined,
-            },
-          },
-        )
-        .exec();
-
-      await this.mailService.sendWelcomeEmail('Welcome to Embellishment Hub', {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
+      // await this.mailService.sendWelcomeEmail('A Bio', {
+      //   email: user.email,
+      //   name: user.name,
+      // });
 
       return;
     } catch (error) {
-      if (error instanceof UnauthorizedException) throw error;
+      console.log(error);
+
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
 
       throw new InternalServerErrorException(
         ERROR_CONSTANT.GENERAL.SERVER_ERROR,
@@ -145,35 +125,23 @@ export class AuthService {
         .findOne({ email: payload.email })
         .lean()
         .exec();
-
       if (!user) {
         throw new NotFoundException(ERROR_CONSTANT.AUTH.USER_DOES_NOT_EXIST);
       }
 
-      const token = BaseHelper.generateRandomString(15);
+      await this.otpService.generateOtp(user.email, 'verify_email');
 
-      await this.userModel
-        .updateOne(
-          { email: user.email },
-          {
-            $set: {
-              verificationToken: token,
-              verificationTokenExpiration: Date.now() + 1800000,
-            },
-          },
-        )
-        .exec();
-
-      await this.mailService.sendVerificationEmail('Verify your email', token, {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
-
+      // await this.mailService.sendVerificationEmail(
+      //   'Verify your email',
+      //   otpCode,
+      //   {
+      //     email: user.email,
+      //     name: user.name,
+      //   },
+      // );
       return;
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
-
       throw new InternalServerErrorException(
         ERROR_CONSTANT.GENERAL.SERVER_ERROR,
       );
@@ -181,27 +149,41 @@ export class AuthService {
   }
 
   async login(payload: ILogin) {
-    const user = await this.userModel
-      .findOne({ email: payload.email })
-      .lean()
-      .exec();
+    try {
+      const user = await this.userModel
+        .findOne({ email: payload.email })
+        .lean()
+        .exec();
 
-    if (!user) {
-      throw new NotFoundException(ERROR_CONSTANT.AUTH.USER_DOES_NOT_EXIST);
+      if (!user) {
+        throw new NotFoundException(ERROR_CONSTANT.AUTH.USER_DOES_NOT_EXIST);
+      }
+
+      const isPasswordValid = await BaseHelper.compareHashedData(
+        payload.password,
+        user.password,
+      );
+
+      if (!isPasswordValid) {
+        throw new NotFoundException(ERROR_CONSTANT.AUTH.LOGIN_FAILED);
+      }
+
+      const token = BaseHelper.generateJwtAccessToken(user._id.toString());
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...data } = user;
+
+      return { ...data, token };
+    } catch (error) {
+      console.log(error);
+
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        ERROR_CONSTANT.GENERAL.SERVER_ERROR,
+      );
     }
-
-    const isPasswordValid = await BaseHelper.compareHashedData(
-      payload.password,
-      user.password,
-    );
-
-    if (!isPasswordValid) {
-      throw new NotFoundException(ERROR_CONSTANT.AUTH.LOGIN_FAILED);
-    }
-
-    const token = BaseHelper.generateJwtAccessToken(user._id.toString());
-
-    return { ...user, token };
   }
 
   async forgotPassword(payload: IForgotPassword) {
@@ -215,36 +197,21 @@ export class AuthService {
         throw new NotFoundException(ERROR_CONSTANT.AUTH.USER_DOES_NOT_EXIST);
       }
 
-      const token = BaseHelper.generateRandomString(15);
+      await this.otpService.generateOtp(user.email, 'verify_email');
 
-      await this.userModel
-        .updateOne(
-          { email: user.email },
-          {
-            $set: {
-              resetToken: token,
-              resetTokenExpiration: Date.now() + 1800000,
-            },
-          },
-        )
-        .exec();
-
-      await this.mailService.sendForgotPasswordEmail(
-        'Reset your email',
-        token,
-        {
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
-      );
-
+      // await this.mailService.sendForgotPasswordEmail(
+      //   'Reset your email',
+      //   otpCode,
+      //   {
+      //     email: user.email,
+      //     name: user.name,
+      //   },
+      // );
       return;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-
       throw new InternalServerErrorException(
         ERROR_CONSTANT.GENERAL.SERVER_ERROR,
       );
@@ -253,38 +220,26 @@ export class AuthService {
 
   async resetPassword(payload: IResetPassword) {
     try {
-      const user = await this.userModel
-        .findOne({
-          resetToken: payload.token,
-          resetTokenExpiration: { $gt: Date.now() },
-        })
-        .lean()
-        .exec();
+      const { email, password } = payload;
 
-      if (!user) {
-        throw new UnauthorizedException(
-          ERROR_CONSTANT.AUTH.PASSWORD_RESET_FAILED,
-        );
-      }
+      const hashedPassword = await BaseHelper.hashData(password);
 
-      const hashedPassword = await BaseHelper.hashData(payload.password);
-
-      await this.userModel
-        .updateOne(
-          { email: user.email },
-          {
-            $set: {
-              password: hashedPassword,
-              resetToken: undefined,
-              resetTokenExpiration: undefined,
-            },
+      const result = await this.userModel.updateOne(
+        { email },
+        {
+          $set: {
+            password: hashedPassword,
           },
-        )
-        .exec();
+        },
+      );
 
-      return;
+      if (result.modifiedCount === 0) {
+        throw new NotFoundException(ERROR_CONSTANT.AUTH.USER_DOES_NOT_EXIST);
+      }
     } catch (error) {
-      if (error instanceof UnauthorizedException) throw error;
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
 
       throw new InternalServerErrorException(
         ERROR_CONSTANT.GENERAL.SERVER_ERROR,

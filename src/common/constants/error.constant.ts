@@ -14,12 +14,14 @@ export const ERROR_CONSTANT = {
     USER_EXISTS: 'User already exists.',
     USER_DOES_NOT_EXIST: 'User does not exist.',
     EXPIRED_SESSION: 'Session expired. Please log in again.',
+    PASSWORD_MISMATCH: 'Passwords do not match',
   },
   USER: {
     GET_CURRENT_USER_FAILED: 'Failed to retrieve user data',
     UPDATE_USER_PROFILE_FAILED: 'Failed to update profile, please try again',
     DELETE_USER_FAILED: 'Failed to delete user, please try again',
     NOT_FOUND: 'User not found',
+    ALREADY_TAKEN: 'Username is already taken',
   },
   GENERAL: {
     SERVER_ERROR: 'Internal server error, please try again later',
@@ -35,5 +37,5 @@ export const ERROR_CONSTANT = {
   EMAIL: {
     FAILED_TO_SEND: 'Failed to send the email. Please try again later.',
     INVALID_RECIPIENT: 'The recipient email is invalid.',
-  }
+  },
 };

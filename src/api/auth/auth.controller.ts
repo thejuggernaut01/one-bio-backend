@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Patch, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateUserDto,
@@ -8,34 +8,34 @@ import {
   ResetPasswordDto,
 } from './dto/auth.dto';
 import { ResponseMessage } from '../../common/decorator/response.decorator';
-import { RESPONSE_CONSTANT } from 'src/common/constants/response.constant';
+import { RESPONSE_CONSTANT } from '../../common/constants/response.constant';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ResponseMessage(RESPONSE_CONSTANT.AUTH.REGISTER_SUCCESS)
-  @Post('signp')
+  @Post('signup')
   async signup(@Body() body: CreateUserDto) {
-    await this.authService.signup(body);
+    return await this.authService.signup(body);
   }
 
-  @ResponseMessage(RESPONSE_CONSTANT.AUTH.REGISTER_SUCCESS)
+  @ResponseMessage(RESPONSE_CONSTANT.AUTH.EMAIL_VERIFICATION_SUCCESS)
   @Post('verify-email')
-  async verifyEmail(@Param('token') token: string) {
-    await this.authService.verifyEmail(token);
+  async verifyEmail(@Body() body: { email: string; code: number }) {
+    return await this.authService.verifyEmail(body.email, body.code);
   }
 
   @ResponseMessage(RESPONSE_CONSTANT.AUTH.SEND_VERIFICATION_EMAIL_SUCCESS)
   @Post('/resend-verify-email')
   async resendVerifyEmail(@Body() body: ResendVerifyEmailDto) {
-    await this.authService.resendVerifyEmail(body);
+    return await this.authService.resendVerifyEmail(body);
   }
 
   @ResponseMessage(RESPONSE_CONSTANT.AUTH.LOGIN_SUCCESS)
   @Post('/login')
   async login(@Body() body: LoginDto) {
-    await this.authService.login(body);
+    return await this.authService.login(body);
   }
 
   @ResponseMessage(RESPONSE_CONSTANT.AUTH.PASSWORD_RESET_EMAIL_SUCCESS)
@@ -46,13 +46,7 @@ export class AuthController {
 
   @ResponseMessage(RESPONSE_CONSTANT.AUTH.PASSWORD_RESET_SUCCESS)
   @Patch('/reset-password')
-  async resetPassword(
-    @Param('token') token: string,
-    @Body() body: ResetPasswordDto,
-  ) {
-    return await this.authService.resetPassword({
-      token,
-      password: body.password,
-    });
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    return await this.authService.resetPassword(body);
   }
 }

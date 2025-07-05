@@ -4,6 +4,7 @@ import { ENVIRONMENT } from '../config/environment';
 import { randomBytes } from 'crypto';
 import { CookieOptions, Response } from 'express';
 import { IDecodedToken } from '../types';
+import * as crypto from 'crypto';
 
 export class BaseHelper {
   static hashData(data: string): Promise<string> {
@@ -19,7 +20,7 @@ export class BaseHelper {
   }
 
   static generateOTP(): number {
-    return Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
+    return crypto.randomInt(100000, 1000000);
   }
 
   static generateJwtAccessToken(id: string) {

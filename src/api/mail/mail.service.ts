@@ -10,26 +10,25 @@ import { ERROR_CONSTANT } from '../../common/constants/error.constant';
 
 interface IUserEmail {
   email: string;
-  firstName: string;
-  lastName: string;
+  name: string;
 }
 
 @Injectable()
 export class MailService {
   async sendVerificationEmail(
     subject: string,
-    tokenUrl: string,
+    otpCode: number,
     user: IUserEmail,
   ) {
     const response = await smtpexpressClient.sendApi.sendMail({
       subject: subject,
-      message: verifyEmailTemplate(tokenUrl, user.firstName),
+      message: verifyEmailTemplate(otpCode, user.name),
       sender: {
         name: ENVIRONMENT.APP.NAME,
         email: ENVIRONMENT.SMTP.SENDER_ADDRESS,
       },
       recipients: {
-        name: user.firstName + ' ' + user.lastName,
+        name: user.name,
         email: user.email,
       },
     });
@@ -45,18 +44,18 @@ export class MailService {
 
   async sendForgotPasswordEmail(
     subject: string,
-    tokenUrl: string,
+    otpCode: number,
     user: IUserEmail,
   ) {
     const response = await smtpexpressClient.sendApi.sendMail({
       subject: subject,
-      message: forgotPasswordEmailTemplate(tokenUrl, user.firstName),
+      message: forgotPasswordEmailTemplate(otpCode, user.name),
       sender: {
         name: ENVIRONMENT.APP.NAME,
         email: ENVIRONMENT.SMTP.SENDER_ADDRESS,
       },
       recipients: {
-        name: user.firstName + ' ' + user.lastName,
+        name: user.name,
         email: user.email,
       },
     });
@@ -73,13 +72,13 @@ export class MailService {
   async sendWelcomeEmail(subject: string, user: IUserEmail) {
     const response = await smtpexpressClient.sendApi.sendMail({
       subject: subject,
-      message: welcomeEmailTemplate(user.firstName),
+      message: welcomeEmailTemplate(user.name),
       sender: {
         name: ENVIRONMENT.APP.NAME,
         email: ENVIRONMENT.SMTP.SENDER_ADDRESS,
       },
       recipients: {
-        name: user.firstName + ' ' + user.lastName,
+        name: user.name,
         email: user.email,
       },
     });

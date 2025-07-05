@@ -2,14 +2,14 @@ import { ENVIRONMENT } from '../../common/config/environment';
 
 const APP_NAME = `${ENVIRONMENT.APP.NAME}`;
 
-export const forgotPasswordEmailTemplate = (tokenUrl: string, name: string) => {
+export const forgotPasswordEmailTemplate = (otpCode: number, name: string) => {
   return `
       <main>
         <h1>Dear ${name},</h1>
         <p>We received a request to reset your password for ${APP_NAME}. If you did not make this request, you can safely ignore this email.</p>
     
         <p>To reset your password, please click the link below:</p>
-        <p><a href="${tokenUrl}">Reset Password</a></p>
+        <p><a href="${otpCode}">Reset Password</a></p>
     
         <p>The link will expire in 30 minutes. If you don't use it within this timeframe, you may need to request a new password reset.</p>
     
@@ -21,7 +21,7 @@ export const forgotPasswordEmailTemplate = (tokenUrl: string, name: string) => {
     `;
 };
 
-export const verifyEmailTemplate = (tokenUrl: string, name: string) => {
+export const verifyEmailTemplate = (otpCode: number, name: string) => {
   return `
       <main>
         <h1>Dear ${name},</h1>
@@ -30,7 +30,7 @@ export const verifyEmailTemplate = (tokenUrl: string, name: string) => {
   
         <p>To complete your registration and start using our app, please verify your email address by clicking the link below:</p>
   
-        <p><a href="${tokenUrl}">Verify Email Address</a></p>
+        <p><a href="${otpCode}">Verify Email Address</a></p>
   
         <p>This link will expire in 30 minutes. If you don't verify your email within this timeframe, you may need to request a new verification link.</p>
   

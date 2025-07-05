@@ -1,18 +1,12 @@
 const AUTH_VALIDATION_MSG = {
-  FIRST_NAME: {
-    IS_STRING: 'First name must be a string',
-    IS_NOT_EMPTY: 'First name is required',
-    MIN_LENGTH: 'First name must be at least 2 characters long',
-    MAX_LENGTH: 'First name must be at most 20 characters long',
-  },
-  LAST_NAME: {
-    IS_STRING: 'Last name must be a string',
-    IS_NOT_EMPTY: 'Last name is required',
-    MIN_LENGTH: 'Last name must be at least 2 characters long',
-    MAX_LENGTH: 'Last name must be at most 20 characters long',
+  NAME: {
+    IS_STRING: 'Name must be a string',
+    IS_NOT_EMPTY: 'Name is required',
+    MIN_LENGTH: 'Name must be at least 2 characters long',
+    MAX_LENGTH: 'Name must be at most 20 characters long',
   },
   EMAIL: {
-    IS_STRING: 'User name must be a string',
+    IS_STRING: 'Email must be a string',
     IS_EMAIL: 'Invalid email address',
     IS_NOT_EMPTY: 'Email address is required',
   },

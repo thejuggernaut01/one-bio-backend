@@ -2,17 +2,18 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { ENVIRONMENT } from './common/config/environment';
 import { LoggerModule } from 'nestjs-pino';
 import { DatabaseModule } from './api/database/database.module';
 import { AuthModule } from './api/auth/auth.module';
 import { MailModule } from './api/mail/mail.module';
+import { OtpModule } from './api/otp/otp.module';
+import { UserModule } from './api/user/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${ENVIRONMENT.APP.ENV}` as string,
+      envFilePath: `.env` as string,
     }),
     LoggerModule.forRoot({
       pinoHttp: {
@@ -30,6 +31,8 @@ import { MailModule } from './api/mail/mail.module';
     DatabaseModule,
     AuthModule,
     MailModule,
+    OtpModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

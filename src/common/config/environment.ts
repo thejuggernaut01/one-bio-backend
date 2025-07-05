@@ -12,9 +12,7 @@ interface IEnvironment {
   };
   JWT: {
     ACCESS_TOKEN: string;
-    REFRESH_TOKEN: string;
     ACCESS_TOKEN_EXPIRES_IN: string;
-    REFRESH_TOKEN_EXPIRES_IN: string;
   };
   SMTP: {
     PROJECT_ID: string;
@@ -30,13 +28,11 @@ export const ENVIRONMENT: IEnvironment = {
     ENV: process.env.NODE_ENV,
   },
   DB: {
-    URI: process.env.URI,
+    URI: process.env.MONGODB_URI,
   },
   JWT: {
     ACCESS_TOKEN: process.env.JWT_ACCESS_TOKEN,
-    REFRESH_TOKEN: process.env.JWT_REFRESH_TOKEN,
     ACCESS_TOKEN_EXPIRES_IN: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-    REFRESH_TOKEN_EXPIRES_IN: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
   },
   SMTP: {
     PROJECT_ID: process.env.SMTP_PROJECT_ID,
