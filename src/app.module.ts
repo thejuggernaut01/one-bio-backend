@@ -8,6 +8,7 @@ import { AuthModule } from './api/auth/auth.module';
 import { MailModule } from './api/mail/mail.module';
 import { OtpModule } from './api/otp/otp.module';
 import { UserModule } from './api/user/user.module';
+import { WaitlistModule } from './api/waitlist/waitlist.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UserModule } from './api/user/user.module';
     MailModule,
     OtpModule,
     UserModule,
+    WaitlistModule,
   ],
   controllers: [AppController],
   providers: [AppService],

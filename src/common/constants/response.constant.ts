@@ -16,4 +16,7 @@ export const RESPONSE_CONSTANT = {
     UPDATE_USER_PROFILE_SUCCESS: 'Profile successfully updated',
     DELETE_USER_SUCCESS: 'User deleted successfully',
   },
+  WAITLIST: {
+    REGISTER_SUCCESS: 'User was added to waitlist sccessfully',
+  },
 };

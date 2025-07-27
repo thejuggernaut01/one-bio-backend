@@ -38,4 +38,8 @@ export const ERROR_CONSTANT = {
     FAILED_TO_SEND: 'Failed to send the email. Please try again later.',
     INVALID_RECIPIENT: 'The recipient email is invalid.',
   },
+  WAITLIST: {
+    EMAIL_REQUIREED: 'Email is required to get on the waitlist.',
+    USER_EXISTS: 'User is already on the waitlist.',
+  },
 };
