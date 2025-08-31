@@ -128,6 +128,45 @@ export class UserService {
     }
   }
 
+  async deletePersonalLink(userId: string, linkId: string): Promise<User> {
+    try {
+      if (!userId) {
+        throw new BadRequestException(ERROR_CONSTANT.USER.NOT_FOUND);
+      }
+
+      if (!linkId) {
+        throw new BadRequestException('Personal link not found');
+      }
+
+      const user = await this.userModel.findByIdAndUpdate(
+        userId,
+        {
+          $pull: { personalLinks: { _id: linkId } },
+        },
+        { new: true },
+      );
+
+      if (!user) {
+        throw new NotFoundException(ERROR_CONSTANT.USER.NOT_FOUND);
+      }
+
+      return user;
+    } catch (error) {
+      console.log('Error while removing user personal link', error);
+
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        ERROR_CONSTANT.GENERAL.SERVER_ERROR,
+      );
+    }
+  }
+
   async deleteUser(userId: string): Promise<void> {
     try {
       if (!userId) {

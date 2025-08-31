@@ -16,6 +16,9 @@ class PersonalLink {
 
   @Prop({ default: false })
   isVisible: boolean;
+
+  @Prop({ type: String })
+  _id?: string;
 }
 
 @Schema({

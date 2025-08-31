@@ -7,6 +7,7 @@ import {
   Get,
   Query,
   Delete,
+  Param,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -41,6 +42,13 @@ export class UserController {
     return this.userService.checkUsernameAvailability(
       checkUsernameDto.username,
     );
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':userId/personal-links/:linkId')
+  async deletePersonalLink(@Request() req, @Param('linkId') linkId: string) {
+    const userId = req.currentUser._id;
+    return await this.userService.deletePersonalLink(userId, linkId);
   }
 
   @ResponseMessage(RESPONSE_CONSTANT.USER.DELETE_USER_SUCCESS)
