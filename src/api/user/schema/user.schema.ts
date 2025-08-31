@@ -6,10 +6,16 @@ export type UserDocument = HydratedDocument<User>;
 
 class PersonalLink {
   @Prop({ required: true })
-  link: string;
+  name: string;
+
+  @Prop({ required: true })
+  url: string;
 
   @Prop()
   image?: string;
+
+  @Prop({ default: false })
+  isVisible: boolean;
 }
 
 @Schema({

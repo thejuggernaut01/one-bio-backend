@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -19,6 +20,10 @@ export class UserService {
     updateUserDto: UpdateUserDto,
   ): Promise<User> {
     try {
+      if (!userId) {
+        throw new BadRequestException(ERROR_CONSTANT.USER.NOT_FOUND);
+      }
+
       if (updateUserDto.username) {
         const existingUser = await this.userModel
           .findOne({ username: updateUserDto.username.toLowerCase() })
@@ -49,9 +54,12 @@ export class UserService {
 
       return updatedUser;
     } catch (error) {
+      console.log('Error while updating user data', error);
+
       if (
         error instanceof ConflictException ||
-        error instanceof NotFoundException
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
       ) {
         throw error;
       }
@@ -66,12 +74,21 @@ export class UserService {
     username: string,
   ): Promise<{ isAvailable: boolean }> {
     try {
+      if (!username) {
+        throw new BadRequestException(ERROR_CONSTANT.USER.USERNAME_NOT_FOUND);
+      }
+
       const existingUser = await this.userModel
         .findOne({ username: username.toLowerCase() })
         .exec();
       return { isAvailable: !!existingUser };
     } catch (error) {
-      console.log(error);
+      console.log('Error while checking username availablity', error);
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
       throw new InternalServerErrorException(
         ERROR_CONSTANT.GENERAL.SERVER_ERROR,
       );
@@ -80,9 +97,14 @@ export class UserService {
 
   async getUserProfile(userId: string): Promise<User> {
     try {
+      if (!userId) {
+        throw new BadRequestException(ERROR_CONSTANT.USER.NOT_FOUND);
+      }
+
       const user = await this.userModel
         .findById(userId)
         .select('-password')
+        .lean()
         .exec();
 
       if (!user) {
@@ -91,7 +113,12 @@ export class UserService {
 
       return user;
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      console.log('Error while fetching user profile', error);
+
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
 
@@ -103,12 +130,22 @@ export class UserService {
 
   async deleteUser(userId: string): Promise<void> {
     try {
+      if (!userId) {
+        throw new BadRequestException(ERROR_CONSTANT.USER.NOT_FOUND);
+      }
+
       const result = await this.userModel.findByIdAndDelete(userId).exec();
+
       if (!result) {
         throw new NotFoundException(ERROR_CONSTANT.USER.NOT_FOUND);
       }
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      console.log('Error while deleting user', error);
+
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
 

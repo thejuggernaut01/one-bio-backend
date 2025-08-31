@@ -22,6 +22,7 @@ export const ERROR_CONSTANT = {
     DELETE_USER_FAILED: 'Failed to delete user, please try again',
     NOT_FOUND: 'User not found',
     ALREADY_TAKEN: 'Username is already taken',
+    USERNAME_NOT_FOUND: 'Username is already taken',
   },
   GENERAL: {
     SERVER_ERROR: 'Internal server error, please try again later',
