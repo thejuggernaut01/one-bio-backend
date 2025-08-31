@@ -5,7 +5,7 @@ import { BUSINESS_CATEGORY, PLATFORMS, PROFILE_GOAL } from '../enum';
 export type UserDocument = HydratedDocument<User>;
 
 class PersonalLink {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   name: string;
 
   @Prop({ required: true })

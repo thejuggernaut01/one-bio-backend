@@ -8,6 +8,7 @@ import {
   Query,
   Delete,
   Param,
+  Post,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,6 +16,7 @@ import { AuthGuard } from '../../common/guard/auth.guard';
 import { CheckUsernameDto } from './dto/check-username.dto';
 import { ResponseMessage } from '../../common/decorator/response.decorator';
 import { RESPONSE_CONSTANT } from '../../common/constants/response.constant';
+import { AddPersonalLinkDto } from './dto/add-personal-link.dto';
 
 @Controller('user')
 export class UserController {
@@ -42,6 +44,16 @@ export class UserController {
     return this.userService.checkUsernameAvailability(
       checkUsernameDto.username,
     );
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':userId/personal-links')
+  async addPersonalLink(
+    @Request() req,
+    @Body() addPersonalLinkDto: AddPersonalLinkDto,
+  ) {
+    const userId = req.currentUser._id;
+    return this.userService.addPersonalLink(userId, addPersonalLinkDto);
   }
 
   @UseGuards(AuthGuard)

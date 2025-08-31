@@ -10,6 +10,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schema/user.schema';
 import { ERROR_CONSTANT } from '../../common/constants/error.constant';
+import { AddPersonalLinkDto } from './dto/add-personal-link.dto';
 
 @Injectable()
 export class UserService {
@@ -126,6 +127,25 @@ export class UserService {
         ERROR_CONSTANT.GENERAL.SERVER_ERROR,
       );
     }
+  }
+
+  async addPersonalLink(
+    userId: string,
+    linkData: AddPersonalLinkDto,
+  ): Promise<User> {
+    const user = await this.userModel.findByIdAndUpdate(
+      userId,
+      {
+        $push: { personalLinks: linkData },
+      },
+      { new: true },
+    );
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return user;
   }
 
   async deletePersonalLink(userId: string, linkId: string): Promise<User> {
