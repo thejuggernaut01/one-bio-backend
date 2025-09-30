@@ -38,7 +38,6 @@ export class UserController {
     return this.userService.updateUser(userId, updateUserDto);
   }
 
-  @UseGuards(AuthGuard)
   @Get('check-username')
   async checkUsername(@Query() checkUsernameDto: CheckUsernameDto) {
     return this.userService.checkUsernameAvailability(

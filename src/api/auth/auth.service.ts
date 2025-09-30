@@ -97,7 +97,7 @@ export class AuthService {
         throw new NotFoundException(ERROR_CONSTANT.AUTH.USER_DOES_NOT_EXIST);
       }
 
-      // await this.mailService.sendWelcomeEmail('A Bio', {
+      // await this.mailService.sendWelcomeEmail('One Bio', {
       //   email: user.email,
       //   name: user.name,
       // });
